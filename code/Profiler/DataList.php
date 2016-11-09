@@ -60,7 +60,7 @@ class DataList extends \DataList {
 		unset($time);
 
 		foreach ($list as $i => $str) {
-			$output .= $str['str'].'<br/>';
+			$output .= $i.'.) '.$str['str'].'<br/>';
 		}
 		$output .= '</pre>';
 		echo $output;
@@ -73,14 +73,26 @@ class DataList extends \DataList {
 		if (static::$profiler_enabled) {
 			$bt = debug_backtrace();
 			$caller = $bt[1];
+			//foreach ($bt as $i => $stackItem) { unset($bt[$i]['object']); }
 			foreach ($bt as $i => $stackItem) {
 				if ($stackItem['class'] === 'Object' && $stackItem['function'] === 'create') {
 					$i++; 
 					$caller = $bt[$i];
-					if ($caller['class'] === 'DataObject' && ($caller['function'] === 'get' ||  $caller['function'] === 'get_one')) {
+					while (isset($caller['class']) && in_array($caller['class'], array('File', 'Object', 'DataModel', 'Hierarchy', 'DataObject', 'Versioned'))) {
 						$i++;
 						$caller = $bt[$i];
+
+						// Backtrace can't figure out the class in this instance, so assume.
+						if (!isset($caller['class'])) {
+							if (basename($caller['file']) === 'Object.php') {
+								$caller['class'] = 'Object';
+							}
+						}
 					}
+					/*if ($caller['function'] === 'call_user_func_array') {
+						echo '<pre>'.print_r($bt, true).'</pre>'; exit;
+					}*/
+
 					$caller['line'] = isset($bt[$i-1]['line']) ? $bt[$i-1]['line'] : '?';
 					/*if (!isset($caller['class'])) {
 						Debug::dump($caller); exit;
@@ -116,7 +128,7 @@ class DataList extends \DataList {
 		$caller = $bt[2];
 		foreach ($bt as $i => $stackItem) {
 			if (!isset($stackItem['class']) || 
-				(!in_array($stackItem['class'], array(__CLASS__, 'Object', 'SS_ListDecorator', 'DataObject', 'DataList')))) {
+				(!in_array($stackItem['class'], array(__CLASS__, 'Object', 'SS_ListDecorator', 'DataObject', 'DataList', 'Versioned')))) {
 				$caller = $stackItem;
 				break;
 			}
