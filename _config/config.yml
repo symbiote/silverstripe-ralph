@@ -1,0 +1,13 @@
+# ---
+# Name: profiler
+# After:
+#   - 'framework/*'
+#   - 'cms/*'
+# ---
+# Injector:
+#   DataList:
+#     class: SilbinaryWolf\Profiler\DataList
+#   ManyManyList:
+#     class: ManyManyList
+#   HasManyList:
+#     class: HasManyList
