@@ -39,13 +39,14 @@ class DataList extends \DataList {
 							++$callCount;
 						}
 						$totalTime *= 1000;
+						$str = 'DataList::'.$dataListFunctionName.'->'.$class.'::'.$function.'('.$line.'): '.$totalTime.'ms (Count: '.$callCount.')';
+						/*foreach ($data as $i => $track) {
+							$str .= "<br/>".'-- '.$track->class.'::'.$track->function.'('.$track->line.')';
+						}*/
 						$list[] = array(
-							'str' => 'DataList::'.$dataListFunctionName.'->'.$class.'::'.$function.'('.$line.'): '.$totalTime.'ms (Count: '.$callCount.')',
+							'str' => $str,
 							'time' => $totalTime
 						);
-						/*foreach ($data as $i => $track) {
-							echo '-- '.$track->class.'::'.$track->function.'<br/>';
-						}*/
 					}
 				}
 			}
@@ -128,7 +129,7 @@ class DataList extends \DataList {
 		$caller = $bt[2];
 		foreach ($bt as $i => $stackItem) {
 			if (!isset($stackItem['class']) || 
-				(!in_array($stackItem['class'], array(__CLASS__, 'Object', 'SS_ListDecorator', 'DataObject', 'DataList', 'Versioned')))) {
+				(!in_array($stackItem['class'], array(__CLASS__, 'IteratorIterator', 'Object', 'SS_ListDecorator', 'DataObject', 'DataList', 'Versioned')))) {
 				$caller = $stackItem;
 				break;
 			}
