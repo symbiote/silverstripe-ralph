@@ -10,7 +10,9 @@ A drop-in module for profiling DataList instances in Silverstripe
 ## How to use
 
 Put in _config.php
-```Ralph::enable();```
+```
+Ralph::enable();
+```
 
 ## Requirements
 - SilverStripe 3.2 or higher
