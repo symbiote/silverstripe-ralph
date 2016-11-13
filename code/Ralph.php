@@ -14,22 +14,17 @@ class Ralph {
 	public $data = array();
 
 	/**
-	 * @var boolean
-	 */
-	private $isInitialized = false;
-
-	/**
-	 * Enables Ralph profiler
+	 * Enables Ralph profiler, by default it will not be enabled in the CMS or in developer tools
 	 *
 	 * @return null
 	 */
-	public static function enable() {
+	public static function enable($inCMS = false) {
 		if (!static::$is_enabled) {
-			$ralph = singleton('Ralph');
-			if (!$ralph->isInitialized) {
-				$ralph->init();
-				$ralph->isInitialized = true;
+			if ($inCMS === false && (self::in_cms() || self::in_dev())) {
+				return;
 			}
+			$ralph = singleton('Ralph');
+			$ralph->init();
 			static::$is_enabled = true;
 		}
 	}
@@ -44,7 +39,8 @@ class Ralph {
         $config['properties']['filters'][] = '%$SilbinaryWolf\Ralph\RequestFilter';
         Config::inst()->update('Injector', 'RequestProcessor', $config);
 
-		$this->useCustomClass('DataList', 'SilbinaryWolf\Ralph\DataList');
+		$cmp = new SilbinaryWolf\Ralph\MetaCompiler;
+		$cmp->process();
 	}
 
 	/**
@@ -63,11 +59,11 @@ class Ralph {
 		}
 
 		$injector = Config::inst()->get('Injector', $oldClass);
-		if (isset($injector['class'])) {
+		if (isset($injector['class']) && $injector['class'] !== $oldClass) {
 			throw new Exception('The class "'.$oldClass.'" is already being overriden by "'.$newClass.'".');
 		}
 		$injector['class'] = $newClass;
-		Config::inst()->update('Injector', 'DataList', $injector);
+		Config::inst()->update('Injector', $oldClass, $injector);
 
 		foreach ($subclasses as $class => $v) {
 			$originalInjector = $originalInjectorInfo[$class];
@@ -85,7 +81,7 @@ class Ralph {
 	 */
 	public function dataListConstructor(DataList $dataList) {
 		$bt = debug_backtrace();
-		$caller = $bt[1];
+		$caller = $bt[2];
 		//foreach ($bt as $i => $stackItem) { unset($bt[$i]['object']); }
 		foreach ($bt as $i => $stackItem) {
 			if ($stackItem['class'] === 'Object' && $stackItem['function'] === 'create') {
@@ -122,6 +118,28 @@ class Ralph {
 		$dataList->profilerCaller = $caller;
 	}
 
+	/**
+	 * Detect if user is in the CMS or not.
+	 *
+	 * @return boolean
+	 */
+	public static function in_cms() {
+		// NOTE(Jake): Might need to remove 'Director::absoluteBaseURL()' from beginning of $url for certain cases later
+		$url = (isset($_GET['url']) && php_sapi_name() !== 'cli-server') ? $_GET['url'] : $_SERVER['REQUEST_URI'];
+		return (strpos($url, '/admin') === 0);
+	}
+
+
+	/**
+	 * Detect if user is in the developer build tools or not
+	 *
+	 * @return boolean
+	 */
+	public static function in_dev() {
+		$url = (isset($_GET['url']) && php_sapi_name() !== 'cli-server') ? $_GET['url'] : $_SERVER['REQUEST_URI'];
+		return (strpos($url, '/dev') === 0);
+	}
+
 	public function profilerStore($object, $functionName, $time) {
 		if (!$object->profilerCaller || !isset($object->profilerCaller)) {
 			throw new Exception('Should have caller information.');
@@ -135,7 +153,7 @@ class Ralph {
 		$caller = $bt[2];
 		foreach ($bt as $i => $stackItem) {
 			if (!isset($stackItem['class']) || 
-				(!in_array($stackItem['class'], array(__CLASS__, 'IteratorIterator', 'Object', 'SS_ListDecorator', 'DataObject', 'DataList', 'Versioned')))) {
+				(!in_array($stackItem['class'], array('IteratorIterator', 'Object', 'SS_ListDecorator', 'DataObject', 'DataList', 'Versioned')))) {
 				$caller = $stackItem;
 				break;
 			}
