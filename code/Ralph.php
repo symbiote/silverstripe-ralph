@@ -314,11 +314,6 @@ class Ralph {
 
 		$template = new SSViewer(array($this->class, __CLASS__));
 		$html = $template->process(new ArrayData(array('Results' => new ArrayList($list))), null);
-		echo $html;
-		/*$result = '';
-		foreach ($list as $i => $str) {
-			$result .= $i.'.) '.$str['str'].'<br/>';
-		}
-		echo '<pre>'.$result.'</pre>';*/
+		return $html;
 	}
 }
