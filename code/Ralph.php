@@ -4,6 +4,8 @@ use SilbinaryWolf\Ralph\FunctionCallRecord;
 use SilbinaryWolf\Ralph\ProfileRecord;
 
 class Ralph {
+	const MODULE_DIR = 'ralph';
+
 	/**
 	 * @var boolean
 	 */
@@ -54,7 +56,7 @@ class Ralph {
 		if (!static::$is_enabled) {
 			$settings = array_merge(static::$default_settings, $settings);
 			$inCMS = $settings['enable_cms'];
-			if ($inCMS === false && (self::in_cms() || self::in_dev())) {
+			if ($inCMS === false && (static::in_cms() || static::in_dev())) {
 				return;
 			}
 			$ralph = singleton('Ralph');
@@ -94,14 +96,6 @@ class Ralph {
 		}
 
 		$injector = Config::inst()->get('Injector', $oldClass);
-		/*if (isset($injector['class']) && $injector['class'] !== $oldClass) {
-			Debug::dump($injector['class']);
-			Debug::dump($oldClass);
-			Debug::dump($newClass);
-			$injector['class'] = $newClass;
-			Debug::dump($injector); exit;
-			throw new Exception('The class "'.$oldClass.'" is already being overriden by "'.$newClass.'".');
-		}*/
 		$injector['class'] = $newClass;
 		Config::inst()->update('Injector', $oldClass, $injector);
 
