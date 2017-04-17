@@ -2,6 +2,10 @@
 
 namespace SilbinaryWolf\Ralph;
 
+/**
+ * NOTE: This will automatically be added to RequestProcessor when Ralph::enable()
+ *       is called.
+ */
 class RequestFilter implements \RequestFilter {
     /**
      * @param \SS_HTTPRequest $request

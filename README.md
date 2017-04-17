@@ -3,9 +3,10 @@ Ralph
 
 ![ralph](https://cloud.githubusercontent.com/assets/3859574/20237062/ffcbf366-a91b-11e6-9b22-81869b6260b6.jpg)
 
-**NOTE: This module is very rough right now and not really usable yet**
-
 A drop-in module for profiling DataList instances in Silverstripe
+
+## Installation
+```composer require silbinarywolf/silverstripe-ralph ~1.1.0```
 
 ## How to use
 
@@ -14,13 +15,15 @@ Put in _config.php
 Ralph::enable(array(
 	'classes' => array(
 		// Classes to instrument
-		'DataList' => array(
+		'Page' => array(
 			// Functions to instrument
-			'toArray'
+			'init'
 		),
 	),
-	'default_classes' => array(), // By default, this is configured to profile DataList, set this array to be empty to turn off.
-	'dump_file' => false, // Enable to dump instrumented code to /ralph/code_generated
+	// By default, this is configured to profile DataList, set this array to be empty to turn off.
+	//'default_classes' => array(),
+	// Enable to dump instrumented code to /ralph/code_generated (for debugging this profiler/debugger)
+	'dump_file' => false,
 ));
 ```
 
@@ -36,6 +39,3 @@ For DataLists, it also tracks where the DataList was constructed.
 ## Requirements
 - SilverStripe 3.2 or higher
 - PHP 5.4 or higher
-
-## Installation
-```composer require silbinarywolf/silverstripe-ralph:1.0.*```
