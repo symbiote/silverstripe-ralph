@@ -9,7 +9,7 @@ use ClassInfo;
 
 class MetaCompiler {
 	public function postConstructCall() {
-		singleton('Ralph')->constructorStore($this);
+		singleton('SilbinaryWolf\\Ralph\\Ralph')->constructorStore($this);
 	}
 
 	public function preFunctionCall() {
@@ -18,15 +18,14 @@ class MetaCompiler {
 
 	public function postFunctionCall() {
 		$timeDifference = microtime(true) - $timeDifference;
-		singleton('Ralph')->profilerStore($this, __FUNCTION__, $timeDifference);
+		singleton('SilbinaryWolf\\Ralph\\Ralph')->profilerStore($this, __FUNCTION__, $timeDifference);
 	}
 
 	public function process() {
-		//$timeDifference = microtime(true);
-		$ralph = singleton('Ralph');
+		$ralph = singleton('SilbinaryWolf\\Ralph\\Ralph');
 
 		$dumpToFiles = $ralph->getDumpToFile();
-		$codeGenerateFolder = BASE_PATH.'/ralph/code_generated/';
+		$codeGenerateFolder = BASE_PATH.'/ralph/src_generated/';
 
 		$classesToInstrument = array();
 		$classesToSkip = array();
@@ -87,26 +86,6 @@ class MetaCompiler {
 		//$timeDifference = microtime(true) - $timeDifference;
 		//$timeDifference *= 1000;
 	}
-
-	/**
-	 * Experimental idea, replace class manifest path with /code_generated/
-	 *
-	public function monkeyPatch() {
-		$includedFiles = get_included_files();
-		$includedFiles = array_flip($includedFiles);
-		$loader = SS_ClassLoader::instance();
-		$classManifest = $loader->getManifest();
-		$classes = $classManifest->getClasses();
-		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-			// Fix Windows
-			$filepath = str_replace('/', '\\', $filepath);
-		}
-		//if (isset($includedFiles[$filepath])) {
-		//	throw new Exception("Cannot monkeypatch");
-		//}
-		$classes['datalist'] = $filepath;
-		singleton('Ralph')->useCustomClass('DataList', 'SilbinaryWolf\Ralph\DataList');
-	}*/
 
 	public function generateClassCode($class, array $functions) {
 		$thisClass = get_class();

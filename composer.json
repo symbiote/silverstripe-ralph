@@ -9,6 +9,12 @@
         "name": "Jake Bentvelzen",
         "email": "jake@silverstripe.com.au"
     }],
+    "autoload": {
+        "psr-4": {
+            "SilbinaryWolf\\Ralph\\": "src/"
+        },
+        "files": ["src/functions_include.php"]
+    },
     "require": {
         "silverstripe/framework": "~3.2"
     },

@@ -12,17 +12,17 @@ A drop-in module for profiling DataList instances in Silverstripe
 
 Put in _config.php
 ```
-Ralph::enable(array(
-	'classes' => array(
+SilbinaryWolf\Ralph\Ralph::enable(array(
+	/*'classes' => array(
 		// Classes to instrument
 		'Page' => array(
 			// Functions to instrument
 			'init'
 		),
-	),
+	),*/
 	// By default, this is configured to profile DataList, set this array to be empty to turn off.
 	//'default_classes' => array(),
-	// Enable to dump instrumented code to /ralph/code_generated (for debugging this profiler/debugger)
+	// Enable to dump instrumented code to /ralph/src_generated (for debugging this profiler/debugger)
 	'dump_file' => false,
 ));
 ```

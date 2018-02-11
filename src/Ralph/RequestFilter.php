@@ -14,7 +14,7 @@ class RequestFilter implements \RequestFilter {
      */
     public function postRequest(\SS_HTTPRequest $request, \SS_HTTPResponse $response, \DataModel $model) {
     	$body = $response->getBody();
-        $html = singleton('Ralph')->forTemplate();
+        $html = singleton('SilbinaryWolf\\Ralph\\Ralph')->forTemplate();
         $body = $body.$html;
         $response->setBody($body);
     }

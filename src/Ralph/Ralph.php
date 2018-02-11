@@ -1,7 +1,15 @@
 <?php
 
+namespace SilbinaryWolf\Ralph;
+
 use SilbinaryWolf\Ralph\FunctionCallRecord;
 use SilbinaryWolf\Ralph\ProfileRecord;
+use SilbinaryWolf\Ralph\ClassName;
+use Config;
+use ClassInfo;
+use SSViewer;
+use ArrayList;
+use ArrayData;
 
 class Ralph {
 	const MODULE_DIR = 'ralph';
@@ -59,7 +67,7 @@ class Ralph {
 			if ($inCMS === false && (static::in_cms() || static::in_dev())) {
 				return;
 			}
-			$ralph = singleton('Ralph');
+			$ralph = singleton('SilbinaryWolf\\Ralph\\Ralph');
 			$ralph->settings = $settings;
 			$ralph->init();
 			static::$is_enabled = true;
@@ -72,11 +80,11 @@ class Ralph {
 	 * @return null
 	 */
 	public function init() {
-        $config = Config::inst()->get('Injector', 'RequestProcessor');
+        $config = Config::inst()->get('Injector', ClassName::RequestProcessor);
         $config['properties']['filters'][] = '%$SilbinaryWolf\Ralph\RequestFilter';
-        Config::inst()->update('Injector', 'RequestProcessor', $config);
+        Config::inst()->update('Injector', ClassName::RequestProcessor, $config);
 
-		$cmp = new SilbinaryWolf\Ralph\MetaCompiler;
+		$cmp = new MetaCompiler;
 		$cmp->process();
 	}
 
@@ -109,8 +117,10 @@ class Ralph {
 	}
 
 	/** 
-	 * Whether to dump to /ralph/code_generated/* folder or not.
-	 * HDD Performance penalty to ensure the instrumentation is working.
+	 * Whether to dump to /ralph/src_generated/* folder or not.
+	 *
+	 * This exists to test and ensure instrumentation of functions is working, however
+	 * this comes at a disk IO penalty.
 	 *
 	 * @var boolean
 	 */
@@ -287,11 +297,12 @@ class Ralph {
 					//foreach ($data as $i => $track) {
 					//	$str .= "<br/>".'-- '.$track->class.'::'.$track->function.'('.$track->line.')';
 					//}
+					$arrayListClass = ClassName::ArrayList;
 					$list[] = array(
 						'Class' => $class,
 						'Function' => $function,
 						'Line' => $line,
-						'Records' => new ArrayList($profileRecordSet),
+						'Records' => new $arrayListClass($profileRecordSet),
 						'Time' => $totalTime
 					);
 				}
@@ -306,7 +317,9 @@ class Ralph {
 		array_multisort($time, SORT_DESC, $list);
 		unset($time);
 
-		$template = new SSViewer(array($this->class, __CLASS__));
+		$baseClassName = substr(__CLASS__, strrpos(__CLASS__, '\\') + 1);
+
+		$template = new SSViewer(array($baseClassName));
 		$html = $template->process(new ArrayData(array('Results' => new ArrayList($list))), null);
 		return $html;
 	}
