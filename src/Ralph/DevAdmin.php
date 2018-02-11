@@ -23,6 +23,8 @@ use TextField;
 use ToggleCompositeField;
 use Config;
 
+require_once(dirname(__FILE__).'/../ss4_compat.php');
+
 class DevAdmin extends LeftAndMain {
 	private static $allowed_actions = array(
 		'index',

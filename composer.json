@@ -13,7 +13,9 @@
         "psr-4": {
             "SilbinaryWolf\\Ralph\\": "src/"
         },
-        "files": ["src/functions_include.php"]
+        "files": [
+            "src/ss4_compat.php"
+        ]
     },
     "require": {
         "silverstripe/framework": "~3.2"

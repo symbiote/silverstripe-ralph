@@ -10,6 +10,9 @@ use ClassInfo;
 use SSViewer;
 use ArrayList;
 use ArrayData;
+use DataList;
+
+require_once(dirname(__FILE__).'/../ss4_compat.php');
 
 class Ralph {
 	const MODULE_DIR = 'ralph';
@@ -51,8 +54,14 @@ class Ralph {
 	 */
 	protected $data = array();
 
+	/**
+	 * @var boolean
+	 */
+	private $isSilverStripe4 = false;
+
 	public function __construct() {
 		$this->class = get_class();
+		$this->isSilverStripe4 = class_exists('SilverStripe\Core\CoreKernel');
 	}
 
 	/**
@@ -80,9 +89,18 @@ class Ralph {
 	 * @return null
 	 */
 	public function init() {
-        $config = Config::inst()->get('Injector', ClassName::RequestProcessor);
+		$config = null;
+
+		$requestProcessorClass = $this->isSilverStripe4 ? 'SilverStripe\Control\RequestProcessor' : 'RequestProcessor';
+		$injectorClass = $this->isSilverStripe4 ? 'SilverStripe\Core\Injector\Injector' : 'Injector';
+
+        $config = Config::inst()->get($injectorClass, $requestProcessorClass);
         $config['properties']['filters'][] = '%$SilbinaryWolf\Ralph\RequestFilter';
-        Config::inst()->update('Injector', ClassName::RequestProcessor, $config);
+        if ($this->isSilverStripe4) {
+        	Config::modify()->set($injectorClass, $requestProcessorClass, $config);
+        } else {
+    	    Config::inst()->update($injectorClass, $requestProcessorClass, $config);
+    	}
 
 		$cmp = new MetaCompiler;
 		$cmp->process();
@@ -96,23 +114,33 @@ class Ralph {
 	 * @return void
 	 */
 	public function useCustomClass($oldClass, $newClass) {
+		$injectorClass = $this->isSilverStripe4 ? \SilverStripe\Core\Injector\Injector::class : 'Injector';
+
 		$subclasses = ClassInfo::subclassesFor($oldClass);
 		unset($subclasses[$oldClass]);
 		$originalInjectorInfo = array();
 		foreach ($subclasses as $class => $v) {
-			$originalInjectorInfo[$class] = Config::inst()->get('Injector', $class);
+			$originalInjectorInfo[$class] = Config::inst()->get($injectorClass, $class);
 		}
 
-		$injector = Config::inst()->get('Injector', $oldClass);
+		$injector = Config::inst()->get($injectorClass, $oldClass);
 		$injector['class'] = $newClass;
-		Config::inst()->update('Injector', $oldClass, $injector);
+		if ($this->isSilverStripe4) {
+			Config::modify()->set($injectorClass, $oldClass, $injector);
+		} else {
+			Config::inst()->update($injectorClass, $oldClass, $injector);
+		}
 
 		foreach ($subclasses as $class => $v) {
 			$originalInjector = $originalInjectorInfo[$class];
 			if (!isset($originalInjector[$class]['class'])) {
 				$originalInjector[$class]['class'] = $class;
 			}
-			Config::inst()->update('Injector', $class, $originalInjector[$class]);
+			if ($this->isSilverStripe4) {
+				Config::modify()->set($injectorClass, $class, $originalInjector[$class]);
+			} else {
+				Config::inst()->update($injectorClass, $class, $originalInjector[$class]);
+			}
 		}
 	}
 
@@ -152,12 +180,32 @@ class Ralph {
 			unset($btVal);
 		}
 
+		$goUpStackIfClass = array(
+			// SS3 (and SS4 via the compatibility layer)
+			'File', 
+			'DataModel', 
+			'Hierarchy', 
+			'DataObject', 
+			'Versioned',
+			// SS3-only
+			'Object',
+			// SS4-only,
+			'SilverStripe\Core\Injector\InjectionCreator',
+			'SilverStripe\Core\Injector\Injector',
+			'SilverStripe\View\ViewableData',
+			'SilverStripe\ORM\DataObject',
+		);
+
 		$caller = $bt[2];
 		foreach ($bt as $i => $stackItem) {
-			if ($stackItem['class'] === 'Object' && $stackItem['function'] === 'create') {
+			if (!isset($stackItem['class'])) {
+				continue;
+			}
+			if ($stackItem['class'] === 'Object' && $stackItem['function'] === 'create' ||
+				$stackItem['class'] === 'ReflectionClass' && $stackItem['function'] === 'newInstanceArgs') {
 				$i++; 
 				$caller = $bt[$i];
-				while (isset($caller['class']) && in_array($caller['class'], array('File', 'Object', 'DataModel', 'Hierarchy', 'DataObject', 'Versioned'))) {
+				while (isset($caller['class']) && in_array($caller['class'], $goUpStackIfClass)) {
 					$i++;
 					$caller = $bt[$i];
 
@@ -278,7 +326,12 @@ class Ralph {
 	}
 
 	/**
-	 * @return null
+	 * Render profiling information.
+	 *
+	 * NOTE: This is called by RequestFilter and automatically appended to the bottom
+	 * 		 of your HTML.
+	 *
+	 * @return HTMLText
 	 */ 
 	public function forTemplate() {
 		$list = array();
@@ -297,12 +350,11 @@ class Ralph {
 					//foreach ($data as $i => $track) {
 					//	$str .= "<br/>".'-- '.$track->class.'::'.$track->function.'('.$track->line.')';
 					//}
-					$arrayListClass = ClassName::ArrayList;
 					$list[] = array(
 						'Class' => $class,
 						'Function' => $function,
 						'Line' => $line,
-						'Records' => new $arrayListClass($profileRecordSet),
+						'Records' => new ArrayList($profileRecordSet),
 						'Time' => $totalTime
 					);
 				}
@@ -317,9 +369,15 @@ class Ralph {
 		array_multisort($time, SORT_DESC, $list);
 		unset($time);
 
-		$baseClassName = substr(__CLASS__, strrpos(__CLASS__, '\\') + 1);
+		$templates = array();
+		if ($this->isSilverStripe4) {
+			$templates = SSViewer::get_templates_by_class(static::class, '', __CLASS__);
+		} else {
+			$classNameWithoutNamespace = substr(__CLASS__, strrpos(__CLASS__, '\\') + 1);
+			$templates[] = $classNameWithoutNamespace;
+		}
 
-		$template = new SSViewer(array($baseClassName));
+		$template = new SSViewer($templates);
 		$html = $template->process(new ArrayData(array('Results' => new ArrayList($list))), null);
 		return $html;
 	}
