@@ -190,6 +190,7 @@ class Ralph {
 			// SS3-only
 			'Object',
 			// SS4-only,
+			'SilverStripe\ORM\DataList',
 			'SilverStripe\Core\Injector\InjectionCreator',
 			'SilverStripe\Core\Injector\Injector',
 			'SilverStripe\View\ViewableData',
@@ -198,20 +199,21 @@ class Ralph {
 
 		$caller = $bt[2];
 		foreach ($bt as $i => $stackItem) {
-			if (!isset($stackItem['class'])) {
-				continue;
-			}
-			if ($stackItem['class'] === 'Object' && $stackItem['function'] === 'create' ||
-				$stackItem['class'] === 'ReflectionClass' && $stackItem['function'] === 'newInstanceArgs') {
+			if (
+				// Silverstripe 3
+				$stackItem['class'] === 'Object' && $stackItem['function'] === 'create' ||
+				// Silverstripe 4
+				$stackItem['class'] === 'ReflectionClass' && $stackItem['function'] === 'newInstanceArgs'
+			) {
 				$i++; 
 				$caller = $bt[$i];
 				while (isset($caller['class']) && in_array($caller['class'], $goUpStackIfClass)) {
 					$i++;
 					$caller = $bt[$i];
 
+					// SS3-only: Handle case where 'call_user_func_array' is called in Object
 					if (!isset($caller['class'])) {
 						$nextCaller = isset($bt[$i+1]) ? $bt[$i+1] : null;
-						// Handle case where 'call_user_func_array' is called in Object
 						if ($nextCaller && $nextCaller['function'] === '__call' && $nextCaller['class'] === 'Object') {
 							$i++;
 							$caller = $bt[$i];
@@ -256,37 +258,86 @@ class Ralph {
 		// Get backtrace (ie. remove 'object' and 'args' as it makes make echoing/dumping it easier to read)
 		$bt = debug_backtrace();
 		foreach ($bt as &$btVal) {
-			unset($btVal['args']);
 			unset($btVal['object']);
 			unset($btVal);
 		}
 		unset($bt[0]); // ignore self
-		unset($bt[1]); // ignore 1st level replacement function
+		unset($bt[1]); // ignore 1st level replacement/wrapper function
+
+		$goUpStackIfClass = array(
+			$this->class,
+			// SS3-only
+			'DataList', 
+			'Hierarchy', 
+			'ViewableData', 
+			'SSViewer',
+			'SSViewer_Scope', 
+			'SSViewer_DataPresenter', 
+
+			'PaginatedList', 
+			'IteratorIterator', 
+			'Object', 
+			'SS_ListDecorator', 
+			'DataObject', 
+			
+			'Versioned',
+			//
+			// SS4-only
+			//
+			'SilverStripe\View\ViewableData',
+			//'SilverStripe\View\SSViewer',
+			'SilverStripe\View\SSViewer_Scope',
+			'SilverStripe\View\SSViewer_DataPresenter',
+
+			//'SilverStripe\Control\RequestHandler',
+			//'SilverStripe\Control\Director',
+			//'SilverStripe\Control\Controller',
+			//'SilverStripe\CMS\Controllers\ContentController',
+			//'SilverStripe\CMS\Controllers\ModelAsController',
+
+			'SilverStripe\ORM\DataObject',
+			'SilverStripe\ORM\DataList',
+
+			//'SilverStripe\Versioned\VersionedHTTPMiddleware',
+			//'SilverStripe\Security\AuthenticationMiddleware',
+			//'SilverStripe\Control\Middleware\CanonicalURLMiddleware',
+
+			// SS4 Multisites
+			'Symbiote\Multisites\Control\MultisitesRootController',
+		);
 
 		$caller = array();
 		$callerIndex = -1;
 		foreach ($bt as $i => $stackItem) {
 			$callerIndex = $i;
-			if (!isset($caller['class']) && 
-				(
-					// Added to skip SSViewer::includeGeneratedTemplate()
-					$stackItem['function'] === 'include' || 
-					// Added to skip Object calling call_user_func_array
+			if (!isset($caller['class'])) {
+				if ($stackItem['function'] === 'include') {
+					// If calling "include()" from SSViewer, assume template rendering
+					if (isset($stackItem['file']) && 
+						strpos($stackItem['file'], 'SSViewer.php') !== FALSE) {
+						$caller = $bt[$i-1];
+						$caller['class'] = '';
+						$caller['function'] = basename($caller['file']);
+						break;
+					}
+				}
+				if (// SS3-only: Added to skip Object calling call_user_func_array
 					$stackItem['function'] === 'call_user_func_array' ||
 					// Added to skip PaginatedList::getTotalItems(), calls 'count()' on DataList
-					$stackItem['function'] === 'count')
-				) {
-				continue;
+					$stackItem['function'] === 'count') {
+					continue;
+				}
 			}
-			if (($stackItem['function'] === 'execute_template' && $stackItem['class'] === 'SSViewer') ||
-				($stackItem['function'] === 'next' && $stackItem['class'] === 'SSViewer_Scope')) {
+			// Fuzzy logic to wind up the stack up to just print the *.ss template where a function/method is being called.
+			if (($stackItem['class'] === 'SSViewer' && $stackItem['function'] === 'execute_template') ||
+				($stackItem['class'] === 'SSViewer_Scope' && $stackItem['function'] === 'next')) {
 				$caller = $stackItem;
 				$caller['class'] = '';
-				$caller['function'] = basename($stackItem['file']);
+				$caller['function'] = basename($caller['file']);
 				break;
 			}
 			if (!isset($stackItem['class']) || 
-				(!in_array($stackItem['class'], array($this->class, 'PaginatedList', 'ViewableData', 'SSViewer', 'SSViewer_Scope', 'SSViewer_DataPresenter', 'Hierarchy', 'IteratorIterator', 'Object', 'SS_ListDecorator', 'DataObject', 'DataList', 'Versioned')))) {
+				(!in_array($stackItem['class'], $goUpStackIfClass))) {
 				$caller = $stackItem;
 				$caller['line'] = isset($bt[$callerIndex-1]['line']) ? $bt[$callerIndex-1]['line'] : -1;
 				break;
@@ -295,13 +346,7 @@ class Ralph {
 		if (!$caller) {
 			throw new Exception('Class ignore rules are too strict. Unable to determine a caller.');
 		}
-		/*if ($caller['function'] === 'count') {
-			Debug::dump($caller); exit;
-		}*/
-		/*if (isset($caller['class']) && $caller['class'] === 'SSViewer_Scope') {
-			Debug::dump($bt); exit;
-		}*/
-		
+
 		$functionCallRecord = new FunctionCallRecord;
 		$functionCallRecord->Class = isset($caller['class']) ? $caller['class'] : '';
 		$functionCallRecord->Function = isset($caller['function']) ? $caller['function'] : '';
