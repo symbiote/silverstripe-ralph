@@ -189,6 +189,8 @@ class Ralph {
 			'Versioned',
 			// SS3-only
 			'Object',
+			'InjectionCreator',
+			'Injector',
 			// SS4-only,
 			'SilverStripe\ORM\DataList',
 			'SilverStripe\Core\Injector\InjectionCreator',
@@ -255,7 +257,7 @@ class Ralph {
 	}
 
 	public function profilerStore($object, $functionName, $time) {
-		// Get backtrace (ie. remove 'object' and 'args' as it makes make echoing/dumping it easier to read)
+		// Get backtrace (ie. remove 'object' as it makes make echoing/dumping it easier to read)
 		$bt = debug_backtrace();
 		foreach ($bt as &$btVal) {
 			unset($btVal['object']);
