@@ -6,6 +6,7 @@ use Debug;
 use Config;
 use ClassInfo;
 
+require_once(dirname(__FILE__).'/../ss4_compat.php');
 
 class MetaCompiler {
 	public function postConstructCall() {

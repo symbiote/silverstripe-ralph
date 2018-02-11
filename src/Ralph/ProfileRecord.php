@@ -2,6 +2,8 @@
 
 namespace SilbinaryWolf\Ralph;
 
+require_once(dirname(__FILE__).'/../ss4_compat.php');
+
 class ProfileRecord extends \ViewableData {
 	/**
 	 * @var FunctionCallRecord
