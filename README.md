@@ -7,6 +7,8 @@
 
 A drop-in module that allows simple and easy profiling of DataList's in SilverStripe.
 
+**WARNING:** This module uses [potentially slow include methods](https://github.com/silbinarywolf/silverstripe-ralph/blob/master/src/ss4_compat.php#L14) and should not be installed in production builds.
+
 ![ralph](https://cloud.githubusercontent.com/assets/3859574/20237062/ffcbf366-a91b-11e6-9b22-81869b6260b6.jpg)
 
 ## Why not just use XHProf or similar?
