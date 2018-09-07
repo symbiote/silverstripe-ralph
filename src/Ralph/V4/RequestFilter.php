@@ -1,6 +1,6 @@
 <?php
 
-namespace SilbinaryWolf\Ralph;
+namespace Symbiote\Ralph;
 
 use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Control\HTTPResponse;
@@ -18,7 +18,7 @@ class RequestFilter implements \SilverStripe\Control\RequestFilter {
     public function postRequest(HTTPRequest $request, HTTPResponse $response) 
     {
         $body = $response->getBody();
-        $html = singleton('SilbinaryWolf\\Ralph\\Ralph')->forTemplate();
+        $html = singleton('Symbiote\\Ralph\\Ralph')->forTemplate();
         $response->setBody($body.$html);
     }
 }

@@ -1,7 +1,7 @@
 # Advanced Usage
 
 ```php
-SilbinaryWolf\Ralph\Ralph::enable(array(
+Symbiote\Ralph\Ralph::enable(array(
 	// Enable to dump instrumented code to /ralph/src_generated (for debugging this profiler/debugger and getting an idea of what its doing)
 	'dump_file' => false,
 	// Disable/Enable this to work in the CMS.
@@ -20,7 +20,7 @@ SilbinaryWolf\Ralph\Ralph::enable(array(
 
 # How does it work?
 
-When you enable it this module `SilbinaryWolf\Ralph\Ralph::enable();`, it will automatically apply pull pre and post instrumentation code from `Ralph::preFunctionCall` and `Ralph::postFunctionCall`, these are then used to create a class that extends the original class but all instrumented functions are wrapped. This new class is then run through `eval()` and loaded. (If you want to inspect the code, enable `dump_file`, load page, and check "src_generated")
+When you enable it this module `Symbiote\Ralph\Ralph::enable();`, it will automatically apply pull pre and post instrumentation code from `Ralph::preFunctionCall` and `Ralph::postFunctionCall`, these are then used to create a class that extends the original class but all instrumented functions are wrapped. This new class is then run through `eval()` and loaded. (If you want to inspect the code, enable `dump_file`, load page, and check "src_generated")
 
 Once the new class is evaluated, the config of the Injector is updated on-the-fly so that any DataList objects created via the Injector will use Ralph's custom instrumented version.
 

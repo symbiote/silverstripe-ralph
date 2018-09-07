@@ -1,6 +1,6 @@
 <?php
 
-namespace SilbinaryWolf\Ralph;
+namespace Symbiote\Ralph;
 
 use SS_HTTPRequest;
 use SS_HTTPResponse;
@@ -16,7 +16,7 @@ class RequestFilter implements \RequestFilter {
     public function postRequest(SS_HTTPRequest $request, SS_HTTPResponse $response, DataModel $model) 
     {
     	$body = $response->getBody();
-        $html = singleton('SilbinaryWolf\\Ralph\\Ralph')->forTemplate();
+        $html = singleton('Symbiote\\Ralph\\Ralph')->forTemplate();
         $response->setBody($body.$html);
     }
 

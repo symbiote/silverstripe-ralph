@@ -1,10 +1,10 @@
 <?php
 
-namespace SilbinaryWolf\Ralph;
+namespace Symbiote\Ralph;
 
-use SilbinaryWolf\Ralph\FunctionCallRecord;
-use SilbinaryWolf\Ralph\ProfileRecord;
-use SilbinaryWolf\Ralph\ClassName;
+use Symbiote\Ralph\FunctionCallRecord;
+use Symbiote\Ralph\ProfileRecord;
+use Symbiote\Ralph\ClassName;
 use Config;
 use ClassInfo;
 use SSViewer;
@@ -76,7 +76,7 @@ class Ralph {
 			if ($inCMS === false && (static::in_cms() || static::in_dev())) {
 				return;
 			}
-			$ralph = singleton('SilbinaryWolf\\Ralph\\Ralph');
+			$ralph = singleton('Symbiote\\Ralph\\Ralph');
 			$ralph->settings = $settings;
 			$ralph->init();
 			static::$is_enabled = true;
@@ -95,7 +95,7 @@ class Ralph {
 		$injectorClass = $this->isSilverStripe4 ? 'SilverStripe\Core\Injector\Injector' : 'Injector';
 
         $config = Config::inst()->get($injectorClass, $requestProcessorClass);
-        $config['properties']['filters'][] = '%$SilbinaryWolf\Ralph\RequestFilter';
+        $config['properties']['filters'][] = '%$Symbiote\Ralph\RequestFilter';
         if ($this->isSilverStripe4) {
         	Config::modify()->set($injectorClass, $requestProcessorClass, $config);
         } else {

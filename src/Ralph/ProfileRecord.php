@@ -1,6 +1,6 @@
 <?php
 
-namespace SilbinaryWolf\Ralph;
+namespace Symbiote\Ralph;
 
 require_once(dirname(__FILE__).'/../ss4_compat.php');
 

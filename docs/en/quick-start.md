@@ -6,7 +6,7 @@
 ```php
 <?php
 
-SilbinaryWolf\Ralph\Ralph::enable();
+Symbiote\Ralph\Ralph::enable();
 ```
 
 3. Scroll to the bottom of any non-CMS page and view the profiling results at the bottom of the page:

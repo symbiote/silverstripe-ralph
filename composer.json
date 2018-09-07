@@ -1,5 +1,5 @@
 {
-    "name": "silbinarywolf/silverstripe-ralph",
+    "name": "symbiote/silverstripe-ralph",
     "description": "Profiling tools to help you speed up your slow code.",
     "type": "silverstripe-module",
     "keywords": ["silverstripe", "debugger", "profiler", "tool"],
@@ -7,11 +7,11 @@
     "authors": [
     {
         "name": "Jake Bentvelzen",
-        "email": "jake@silverstripe.com.au"
+        "email": "jake@symbiote.com.au"
     }],
     "autoload": {
         "psr-4": {
-            "SilbinaryWolf\\Ralph\\": "src/"
+            "Symbiote\\Ralph\\": "src/"
         },
         "files": [
             "src/ss4_compat.php"
@@ -23,7 +23,10 @@
     "extra": {
         "installer-name": "ralph",
         "branch-alias": {
-            "dev-master": "2.0.x-dev"
+            "dev-master": "3.0.x-dev"
         }
-    }
+    },
+	"replace": {
+		"silbinarywolf/silverstripe-ralph": "self.version"
+	}
 }
