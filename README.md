@@ -20,7 +20,7 @@ Another benefit of this module is that you can do a quick 5-10 minute profile of
 ## Composer Install
 
 ```
-composer require symbiote/silverstripe-ralph:~2.0
+composer require symbiote/silverstripe-ralph:~3.0
 ```
 
 ## Requirements
